@@ -9,7 +9,8 @@
     "lint": "eslint .",
     "verify": "esbuild scripts/verify.mjs --bundle --format=esm --platform=node --outfile=scripts/.verify.bundle.mjs --loader:.jsx=jsx --jsx=automatic --external:react --external:react-dom --external:react/jsx-runtime --log-level=error && node scripts/.verify.bundle.mjs; rm -f scripts/.verify.bundle.mjs",
     "preview": "vite preview",
-    "deploy": "node scripts/deploy.mjs"
+    "deploy": "node scripts/deploy.mjs",
+    "docs:archetypes": "node scripts/generate-archetype-doc.mjs"
   },
   "dependencies": {
     "react": "^19.2.0",

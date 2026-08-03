@@ -32,7 +32,3 @@ screenshots/
 # Local secrets / backend config
 .env.local
 .env
-
-# Internal docs — kept local, never pushed
-README.md
-docs/GO-TO-MARKET-CONTEXT.md
