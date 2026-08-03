@@ -1,7 +1,13 @@
 # AI Compass
 
-A two-minute quiz that maps what you believe about AI onto four axes, then
-hands you a shareable archetype — whatever your views.
+A way into the AI conversation for anyone curious about it. Two minutes of
+questions place your own views on four axes, then hand you a shareable
+archetype and a short reading list — the thinkers and communities already
+working through the same questions.
+
+The point isn't the label. It's the on-ramp: most people encounter the AI
+debate as noise from camps talking past each other, and this gives them a
+foothold plus somewhere to go next.
 
 Forked from [justincurl/ai-quiz](https://github.com/justincurl/ai-quiz) (which
 shipped as "GUFO"). The quiz itself is unchanged; this is a naming and
@@ -58,6 +64,11 @@ at an archetype, so the label can't bias the answers. Enforced by a test.
 
 **Sharing.** Typographic share card, pre-filled X / LinkedIn / Bluesky links,
 native share sheet where available, and results encoded in the URL.
+
+**Somewhere to go next.** Every archetype's thinkers and communities are now
+links, on the result and throughout the archetype index. They run a search
+rather than pointing at one hardcoded homepage — see `src/logic/explore.js` for
+why.
 
 ### Unchanged, deliberately
 

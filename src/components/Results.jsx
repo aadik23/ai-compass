@@ -5,6 +5,7 @@ import Share from "./Share";
 import Archetypes from "./Archetypes";
 import { describeCode } from "../logic/archetype";
 import { lowerFirst } from "../logic/cardLayout";
+import { exploreUrl } from "../logic/explore";
 
 /**
  * The archetype's first and only appearance. Nothing above this screen names
@@ -74,13 +75,30 @@ export default function Results({ code, scores, onRestart, shared, canonical }) 
       {(desc.thinkers.length > 0 || desc.communities.length > 0) && (
         <>
           <hr className="rule" />
+          <div className="result-section-head">
+            <span className="eyebrow">Where to go next</span>
+          </div>
+          <p className="result-deck">
+            Starting points, not endorsements. These are the people and groups
+            whose thinking lands nearest yours — the fastest way in is to go
+            read the ones you haven't heard of.
+          </p>
+
           <div className="result-lists">
             {desc.thinkers.length > 0 && (
               <div className="result-list">
-                <span className="eyebrow">Thinkers in this territory</span>
+                <span className="eyebrow">Thinkers</span>
                 <ul>
                   {desc.thinkers.map((t) => (
-                    <li key={t}>{t}</li>
+                    <li key={t}>
+                      <a
+                        href={exploreUrl(t, "thinker")}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        {t}
+                      </a>
+                    </li>
                   ))}
                 </ul>
               </div>
@@ -90,16 +108,25 @@ export default function Results({ code, scores, onRestart, shared, canonical }) 
                 <span className="eyebrow">Communities</span>
                 <ul>
                   {desc.communities.map((c) => (
-                    <li key={c}>{c}</li>
+                    <li key={c}>
+                      <a
+                        href={exploreUrl(c, "community")}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        {c}
+                      </a>
+                    </li>
                   ))}
                 </ul>
               </div>
             )}
           </div>
           <p className="result-disclaimer">
-            These selections were made by Claude. They are, of course,
+            These selections were made by Claude, and each link runs a search
+            rather than pointing at one official page. They are
             oversimplifications that don't fully represent what those people and
-            groups actually think.
+            groups actually think — treat them as directions, not labels.
           </p>
         </>
       )}

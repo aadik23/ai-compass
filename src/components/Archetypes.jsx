@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { typeDescriptions } from "../data/typeDescriptions";
 import { lowerFirst } from "../logic/cardLayout";
+import { exploreUrl } from "../logic/explore";
 
 const typeKeys = Object.keys(typeDescriptions);
 
@@ -54,10 +55,18 @@ export default function Archetypes({ currentCode }) {
 
                     {t.thinkers.length > 0 && (
                       <div className="result-list" style={{ marginTop: "1.25rem" }}>
-                        <span className="eyebrow">Thinkers in this territory</span>
+                        <span className="eyebrow">Thinkers</span>
                         <ul>
                           {t.thinkers.map((x) => (
-                            <li key={x}>{x}</li>
+                            <li key={x}>
+                              <a
+                                href={exploreUrl(x, "thinker")}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                              >
+                                {x}
+                              </a>
+                            </li>
                           ))}
                         </ul>
                       </div>
@@ -68,7 +77,15 @@ export default function Archetypes({ currentCode }) {
                         <span className="eyebrow">Communities</span>
                         <ul>
                           {t.communities.map((x) => (
-                            <li key={x}>{x}</li>
+                            <li key={x}>
+                              <a
+                                href={exploreUrl(x, "community")}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                              >
+                                {x}
+                              </a>
+                            </li>
                           ))}
                         </ul>
                       </div>
