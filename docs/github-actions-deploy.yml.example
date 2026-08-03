@@ -1,0 +1,70 @@
+name: Deploy AI Compass
+
+# The alternative to `npm run deploy`. Pushing this file needs the `workflow`
+# OAuth scope: gh auth refresh -s workflow
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      # Derive the base path from the repo name so nothing is hardcoded:
+      # <owner>.github.io publishes at the root, everything else under /<repo>/.
+      - name: Resolve Pages URLs
+        id: urls
+        run: |
+          OWNER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
+          REPO="${{ github.event.repository.name }}"
+          if [ "$(echo "$REPO" | tr '[:upper:]' '[:lower:]')" = "$OWNER.github.io" ]; then
+            echo "base=/" >> "$GITHUB_OUTPUT"
+          else
+            echo "base=/$REPO/" >> "$GITHUB_OUTPUT"
+          fi
+          echo "site=https://$OWNER.github.io" >> "$GITHUB_OUTPUT"
+
+      - run: npm run lint
+      - run: npm run verify
+
+      - name: Build
+        env:
+          VITE_BASE: ${{ steps.urls.outputs.base }}
+          VITE_SITE_URL: ${{ steps.urls.outputs.site }}
+        run: npm run build
+
+      - run: touch dist/.nojekyll
+
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

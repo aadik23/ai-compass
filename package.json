@@ -1,0 +1,32 @@
+{
+  "name": "ai-compass",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build && node scripts/generate-og.mjs && cp dist/index.html dist/404.html",
+    "lint": "eslint .",
+    "verify": "esbuild scripts/verify.mjs --bundle --format=esm --platform=node --outfile=scripts/.verify.bundle.mjs --loader:.jsx=jsx --jsx=automatic --external:react --external:react-dom --external:react/jsx-runtime --log-level=error && node scripts/.verify.bundle.mjs; rm -f scripts/.verify.bundle.mjs",
+    "preview": "vite preview",
+    "deploy": "node scripts/deploy.mjs"
+  },
+  "dependencies": {
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.1",
+    "@resvg/resvg-js": "^2.6.2",
+    "@types/react": "^19.2.5",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^5.1.1",
+    "eslint": "^9.39.1",
+    "eslint-plugin-react-hooks": "^7.0.1",
+    "eslint-plugin-react-refresh": "^0.4.24",
+    "fontkit": "^2.0.4",
+    "globals": "^16.5.0",
+    "playwright": "^1.62.1",
+    "vite": "^7.2.4"
+  }
+}

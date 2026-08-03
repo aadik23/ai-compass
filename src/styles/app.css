@@ -1,0 +1,950 @@
+/* ===========================================================================
+   AI Compass — editorial design system
+   Rules: type does the work · near-monochrome + green/yellow · hairline rules
+   · generous whitespace · Upshot-grade meters · quiet motion
+   ======================================================================== */
+
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  /* Ground & ink */
+  --paper: #fbfaf8;
+  --paper-raised: #ffffff;
+  --ink: #1a1a1a;
+  --ink-secondary: #5a5a5a;
+  /* 4.9:1 on paper. Carries eyebrows and inactive pole labels — real text, so
+     it has to clear 4.5:1 even though it reads as a soft grey. */
+  --ink-tertiary: #6e6e6e;
+
+  /* Hairlines. --rule is structural decoration (section dividers) and is
+     deliberately faint; --chart-line carries the axis scales and clears the
+     3:1 non-text floor. */
+  --rule: #e0dedb;
+  --rule-strong: #c4c1bd;
+  --chart-line: #8f8b86;
+
+  /* Accents — Wordle green (primary) and yellow (secondary, sparing) */
+  --green: #6aaa64;
+  --yellow: #c9b458;
+  /* Darkened variants for text/small marks: the raw accents fall below 4.5:1
+     on paper, and the contrast floor is non-negotiable. */
+  --green-ink: #4a7a45;
+  --yellow-ink: #7a6a20;
+
+  /* Type */
+  --serif: "Source Serif 4", Georgia, "Times New Roman", serif;
+  --sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+
+  /* Measure */
+  --measure: 660px;
+
+  --ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  font-family: var(--sans);
+  font-size: 18px;
+  line-height: 1.6;
+  background: var(--paper);
+  color: var(--ink);
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* ---- Focus: always visible, never removed ------------------------------ */
+:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 3px;
+}
+
+/* ---- Motion: quiet, and off entirely when asked ------------------------ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    /* Delays must go too: the staggered result reveal sets them inline, and
+       with fill-mode `both` a surviving delay would hold elements at their
+       from-state (invisible) before snapping in. */
+    animation-delay: 0ms !important;
+    transition-duration: 0.001ms !important;
+    transition-delay: 0ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes meter-sweep {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+/* ===========================================================================
+   Layout
+   ======================================================================== */
+
+.app {
+  max-width: var(--measure);
+  margin: 0 auto;
+  padding: 3rem 1.5rem 5rem;
+}
+
+.masthead {
+  text-align: center;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--rule);
+  margin-bottom: 3rem;
+}
+
+.wordmark {
+  font-family: var(--sans);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink);
+  background: none;
+  border: 0;
+  cursor: pointer;
+  padding: 0;
+}
+
+.masthead-tagline {
+  font-family: var(--serif);
+  font-size: 0.9375rem;
+  font-style: italic;
+  color: var(--ink-secondary);
+  margin-top: 0.35rem;
+}
+
+.masthead-nav {
+  display: flex;
+  justify-content: center;
+  gap: 1.25rem;
+  margin-top: 1rem;
+}
+
+.masthead-nav a {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: var(--ink-tertiary);
+  padding-bottom: 2px;
+  border-bottom: 1px solid transparent;
+}
+
+.masthead-nav a:hover {
+  color: var(--ink);
+}
+
+.masthead-nav a.active {
+  color: var(--ink);
+  border-bottom-color: var(--ink);
+}
+
+/* Shared primitives ------------------------------------------------------ */
+
+.eyebrow {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-tertiary);
+}
+
+.rule {
+  border: 0;
+  border-top: 1px solid var(--rule);
+  margin: 2.5rem 0;
+}
+
+/* ===========================================================================
+   Buttons
+   ======================================================================== */
+
+.btn {
+  font-family: var(--sans);
+  font-size: 0.875rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--ink);
+  background: transparent;
+  border: 1px solid var(--rule-strong);
+  border-radius: 0;
+  padding: 0.75rem 1.5rem;
+  cursor: pointer;
+  transition: background-color 0.15s var(--ease), border-color 0.15s var(--ease),
+    color 0.15s var(--ease);
+}
+
+.btn:hover {
+  border-color: var(--ink);
+  background: rgba(0, 0, 0, 0.03);
+}
+
+.btn-primary {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--paper-raised);
+}
+
+.btn-primary:hover {
+  background: #000;
+  border-color: #000;
+  color: var(--paper-raised);
+}
+
+.btn-quiet {
+  border-color: transparent;
+  color: var(--ink-secondary);
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.btn-quiet:hover {
+  background: transparent;
+  border-color: transparent;
+  color: var(--ink);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* ===========================================================================
+   Intro
+   ======================================================================== */
+
+.intro {
+  animation: fade-up 0.5s var(--ease) both;
+}
+
+.intro-headline {
+  font-family: var(--serif);
+  font-size: clamp(2.25rem, 7vw, 3.25rem);
+  font-weight: 600;
+  line-height: 1.08;
+  letter-spacing: -0.02em;
+  margin-bottom: 1.25rem;
+}
+
+.intro-deck {
+  font-family: var(--serif);
+  font-size: 1.25rem;
+  line-height: 1.55;
+  color: var(--ink-secondary);
+  margin-bottom: 2rem;
+  max-width: 34em;
+}
+
+.intro-meta {
+  display: flex;
+  gap: 2rem;
+  flex-wrap: wrap;
+  padding: 1.25rem 0;
+  border-top: 1px solid var(--rule);
+  border-bottom: 1px solid var(--rule);
+  margin-bottom: 2rem;
+}
+
+.intro-meta-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.intro-meta-value {
+  font-family: var(--serif);
+  font-size: 1.375rem;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.intro-note {
+  font-size: 0.875rem;
+  color: var(--ink-tertiary);
+  margin-top: 1.25rem;
+  max-width: 42em;
+}
+
+/* ===========================================================================
+   Quiz
+   ======================================================================== */
+
+.quiz {
+  animation: fade-in 0.3s var(--ease) both;
+}
+
+.progress {
+  margin-bottom: 3rem;
+}
+
+.progress-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 0.6rem;
+}
+
+.progress-count {
+  font-variant-numeric: tabular-nums;
+}
+
+.progress-track {
+  height: 2px;
+  background: var(--rule);
+  position: relative;
+  overflow: hidden;
+}
+
+.progress-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  background: var(--green);
+  transition: width 0.4s var(--ease);
+}
+
+.question {
+  animation: fade-up 0.35s var(--ease) both;
+}
+
+.question-text {
+  font-family: var(--serif);
+  font-size: clamp(1.5rem, 4.5vw, 1.9rem);
+  font-weight: 600;
+  line-height: 1.28;
+  letter-spacing: -0.01em;
+  margin-bottom: 2rem;
+  text-wrap: pretty;
+}
+
+.options {
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid var(--rule);
+}
+
+.option {
+  font-family: var(--sans);
+  font-size: 1rem;
+  line-height: 1.45;
+  text-align: left;
+  color: var(--ink);
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--rule);
+  border-radius: 0;
+  padding: 1.05rem 1rem 1.05rem 0;
+  cursor: pointer;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.9rem;
+  transition: background-color 0.15s var(--ease), padding-left 0.15s var(--ease);
+}
+
+.option:hover {
+  background: rgba(0, 0, 0, 0.025);
+  padding-left: 0.5rem;
+}
+
+.option-marker {
+  flex: none;
+  width: 12px;
+  height: 12px;
+  margin-top: 0.42rem;
+  border: 1px solid var(--rule-strong);
+  background: transparent;
+  transition: background-color 0.15s var(--ease), border-color 0.15s var(--ease);
+}
+
+.option:hover .option-marker {
+  border-color: var(--ink-secondary);
+}
+
+.option.selected {
+  background: rgba(106, 170, 100, 0.09);
+}
+
+.option.selected .option-marker {
+  background: var(--green);
+  border-color: var(--green);
+}
+
+.quiz-footer {
+  margin-top: 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+/* ===========================================================================
+   Axis meters — the Upshot-style chart
+   ======================================================================== */
+
+/* All four meters share one grid so the scales start and end at the same x —
+   the rows are only comparable if the tracks line up. */
+.meters {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  column-gap: 0.85rem;
+  row-gap: 0.45rem;
+}
+
+.meters.animate {
+  animation: fade-up 0.5s var(--ease) 0.3s both;
+}
+
+.meter,
+.meter-body {
+  display: contents;
+}
+
+.meter-head {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 1rem;
+  margin-top: 1.7rem;
+}
+
+.meter:first-child .meter-head {
+  margin-top: 0;
+}
+
+.meter-value {
+  font-family: var(--sans);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+}
+
+.meter-pole {
+  font-size: 0.8125rem;
+  font-weight: 400;
+  line-height: 1.2;
+  color: var(--ink-tertiary);
+  white-space: nowrap;
+  transition: color 0.3s var(--ease);
+}
+
+.meter-pole.active {
+  color: var(--green-ink);
+  font-weight: 600;
+}
+
+.meter-pole.left {
+  text-align: right;
+}
+
+.meter-scale {
+  position: relative;
+  height: 26px;
+}
+
+/* Baseline the marker sits on */
+.meter-axis-line {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: var(--chart-line);
+  transform: translateY(-50%);
+}
+
+/* Center tick (the 50 line) */
+.meter-center {
+  position: absolute;
+  left: 50%;
+  top: 2px;
+  bottom: 2px;
+  width: 1px;
+  background: var(--chart-line);
+}
+
+/* Filled span from center to the reading */
+.meter-fill {
+  position: absolute;
+  top: 50%;
+  height: 3px;
+  background: var(--green);
+  transform: translateY(-50%);
+}
+
+.meter-fill.animate {
+  transform-origin: var(--fill-origin, left) center;
+  animation: meter-sweep 0.7s var(--ease) both;
+  animation-delay: var(--meter-delay, 0s);
+}
+
+.meter-marker {
+  position: absolute;
+  top: 50%;
+  width: 3px;
+  height: 20px;
+  background: var(--ink);
+  transform: translate(-50%, -50%);
+}
+
+.meter-marker.animate {
+  animation: fade-in 0.4s var(--ease) both;
+  animation-delay: calc(var(--meter-delay, 0s) + 0.45s);
+}
+
+.meter-scale-ends {
+  position: absolute;
+  top: 50%;
+  width: 1px;
+  height: 7px;
+  background: var(--chart-line);
+  transform: translateY(-50%);
+}
+
+/* ===========================================================================
+   Results
+   ======================================================================== */
+
+.results {
+  animation: fade-in 0.4s var(--ease) both;
+}
+
+.result-eyebrow {
+  animation: fade-up 0.5s var(--ease) both;
+  margin-bottom: 0.75rem;
+}
+
+/* Focused programmatically on reveal to move the reading cursor. It isn't
+   tab-reachable, so the ring would be noise on load. */
+.result-name:focus {
+  outline: none;
+}
+
+.result-name {
+  font-family: var(--serif);
+  font-size: clamp(2.5rem, 9vw, 4rem);
+  font-weight: 700;
+  line-height: 1.02;
+  letter-spacing: -0.03em;
+  animation: fade-up 0.6s var(--ease) 0.08s both;
+}
+
+.result-code {
+  display: inline-block;
+  font-family: var(--sans);
+  font-size: 0.875rem;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  padding: 0.3rem 0.7rem 0.3rem 0.85rem;
+  background: var(--yellow);
+  color: var(--ink);
+  margin-top: 1.1rem;
+  animation: fade-up 0.6s var(--ease) 0.16s both;
+}
+
+.result-tagline {
+  font-family: var(--serif);
+  font-size: 1.375rem;
+  line-height: 1.45;
+  color: var(--ink-secondary);
+  margin-top: 1.1rem;
+  max-width: 30em;
+  animation: fade-up 0.6s var(--ease) 0.24s both;
+}
+
+.result-section-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-bottom: 0.6rem;
+  border-bottom: 1px solid var(--ink);
+  margin-bottom: 1.75rem;
+}
+
+.result-prose {
+  font-family: var(--serif);
+  font-size: 1.125rem;
+  line-height: 1.7;
+}
+
+.result-prose p + p {
+  margin-top: 1rem;
+}
+
+.result-lists {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 2rem;
+}
+
+.result-list ul {
+  list-style: none;
+  margin-top: 0.75rem;
+}
+
+.result-list li {
+  font-size: 0.9375rem;
+  line-height: 1.4;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--rule);
+  color: var(--ink-secondary);
+}
+
+.result-disclaimer {
+  font-size: 0.8125rem;
+  line-height: 1.6;
+  color: var(--ink-tertiary);
+  margin-top: 1.5rem;
+  max-width: 42em;
+}
+
+.result-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.shared-banner {
+  font-size: 0.875rem;
+  color: var(--ink-secondary);
+  padding: 0.9rem 1rem;
+  background: rgba(201, 180, 88, 0.13);
+  border-left: 2px solid var(--yellow);
+  margin-bottom: 2rem;
+}
+
+/* ===========================================================================
+   Share
+   ======================================================================== */
+
+.share-text {
+  font-family: var(--serif);
+  font-size: 1.0625rem;
+  line-height: 1.55;
+  color: var(--ink);
+  background: var(--paper-raised);
+  border: 1px solid var(--rule);
+  padding: 1.15rem 1.25rem;
+  margin-bottom: 1.25rem;
+}
+
+.share-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  align-items: center;
+}
+
+.share-card-preview {
+  margin-top: 1.75rem;
+}
+
+.share-card-preview img,
+.share-card-preview canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+  border: 1px solid var(--rule);
+}
+
+.share-status {
+  font-size: 0.8125rem;
+  color: var(--green-ink);
+  font-weight: 600;
+  min-height: 1.2em;
+  margin-top: 0.75rem;
+}
+
+/* ===========================================================================
+   Archetype index
+   ======================================================================== */
+
+.archetypes-list {
+  border-top: 1px solid var(--rule);
+}
+
+.archetype-row {
+  width: 100%;
+  text-align: left;
+  font-family: var(--sans);
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--rule);
+  border-radius: 0;
+  padding: 1rem 0;
+  cursor: pointer;
+  display: grid;
+  grid-template-columns: 5.5rem 1fr auto;
+  align-items: baseline;
+  gap: 1rem;
+  transition: background-color 0.15s var(--ease);
+}
+
+.archetype-row:hover {
+  background: rgba(0, 0, 0, 0.025);
+}
+
+.archetype-row-code {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  color: var(--ink-tertiary);
+  font-variant-numeric: tabular-nums;
+}
+
+.archetype-row.is-current .archetype-row-code {
+  color: var(--ink);
+  background: var(--yellow);
+  padding: 0.15rem 0.35rem 0.15rem 0.45rem;
+  justify-self: start;
+}
+
+.archetype-row-name {
+  font-family: var(--serif);
+  font-size: 1.0625rem;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.archetype-row-you {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--green-ink);
+}
+
+.archetype-detail {
+  padding: 0.5rem 0 1.75rem;
+  border-bottom: 1px solid var(--rule);
+  animation: fade-up 0.3s var(--ease) both;
+}
+
+.archetype-detail-tagline {
+  font-family: var(--serif);
+  font-size: 1.0625rem;
+  font-style: italic;
+  color: var(--ink-secondary);
+  margin-bottom: 0.85rem;
+}
+
+.archetype-detail p {
+  font-family: var(--serif);
+  font-size: 1rem;
+  line-height: 1.65;
+}
+
+/* ===========================================================================
+   Stats
+   ======================================================================== */
+
+.stats-note {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  font-size: 0.8125rem;
+  color: var(--ink-tertiary);
+  margin-bottom: 2rem;
+}
+
+.stats-empty {
+  font-family: var(--serif);
+  font-size: 1.125rem;
+  color: var(--ink-secondary);
+}
+
+.stats-figures {
+  display: flex;
+  gap: 2.5rem;
+  flex-wrap: wrap;
+  padding: 1.25rem 0;
+  border-top: 1px solid var(--rule);
+  border-bottom: 1px solid var(--rule);
+  margin-bottom: 2.5rem;
+}
+
+.stats-figure-value {
+  font-family: var(--serif);
+  font-size: 2rem;
+  font-weight: 600;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+
+.stats-bar-row {
+  display: grid;
+  grid-template-columns: 4.5rem 1fr 2.5rem;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 0.3rem 0;
+}
+
+.stats-bar-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  color: var(--ink-secondary);
+}
+
+.stats-bar-track {
+  height: 12px;
+  position: relative;
+}
+
+.stats-bar-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  background: var(--green);
+}
+
+.stats-bar-value {
+  font-size: 0.8125rem;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-secondary);
+}
+
+.stats-q {
+  padding: 1.5rem 0;
+  border-bottom: 1px solid var(--rule);
+}
+
+.stats-q-text {
+  font-family: var(--serif);
+  font-size: 1.0625rem;
+  line-height: 1.45;
+  margin: 0.5rem 0 0.85rem;
+}
+
+.stats-q-meta {
+  display: flex;
+  gap: 1.25rem;
+  font-size: 0.75rem;
+  color: var(--ink-tertiary);
+  font-variant-numeric: tabular-nums;
+  margin-bottom: 0.85rem;
+}
+
+.stats-dist {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 0.4rem;
+  align-items: end;
+  height: 70px;
+}
+
+.stats-dist-col {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  height: 100%;
+  gap: 0.35rem;
+}
+
+.stats-dist-bar {
+  background: var(--green);
+  min-height: 1px;
+}
+
+.stats-dist-label {
+  font-size: 0.6875rem;
+  text-align: center;
+  color: var(--ink-tertiary);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ===========================================================================
+   Responsive
+   ======================================================================== */
+
+@media (max-width: 560px) {
+  body {
+    font-size: 17px;
+  }
+
+  .app {
+    padding: 2rem 1.15rem 4rem;
+  }
+
+  .masthead {
+    margin-bottom: 2.25rem;
+  }
+
+  /* Poles move above the scale so long labels don't crush the track */
+  .meters {
+    grid-template-columns: 1fr 1fr;
+    row-gap: 0.3rem;
+  }
+
+  .meter-pole {
+    white-space: normal;
+  }
+
+  .meter-pole.left {
+    grid-column: 1;
+    text-align: left;
+  }
+
+  .meter-pole.right {
+    grid-column: 2;
+    text-align: right;
+  }
+
+  .meter-scale {
+    grid-column: 1 / -1;
+  }
+
+  .archetype-row {
+    grid-template-columns: 1fr auto;
+    row-gap: 0.3rem;
+  }
+
+  .archetype-row-code {
+    grid-column: 1 / -1;
+  }
+
+  .stats-figures {
+    gap: 1.5rem;
+  }
+}
