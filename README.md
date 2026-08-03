@@ -9,9 +9,6 @@ The point isn't the label. It's the on-ramp: most people encounter the AI
 debate as noise from camps talking past each other, and this gives them a
 foothold plus somewhere to go next.
 
-Forked from [justincurl/ai-quiz](https://github.com/justincurl/ai-quiz) (which
-shipped as "GUFO"). The quiz itself is unchanged; this is a naming and
-aesthetics pass, plus a local-only storage layer.
 
 ## Run it
 
