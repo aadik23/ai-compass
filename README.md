@@ -140,8 +140,28 @@ is worse — both fall under the contrast floor as text. So:
 
 `npm run verify` asserts every one of these ratios.
 
-## Deferred
+## Shared stats
 
-"Compare to others" / result distribution across all takers. It needs a
-backend (serverless function plus a store); the local `#/stats` page only ever
-shows your own runs.
+`#/stats` shows population totals — how many people have finished, the archetype
+leaderboard with percentages, where everyone averages on each axis, and the
+answer spread per question. Each completed quiz adds to those totals.
+
+This needs a backend, since GitHub Pages can't store anything:
+
+1. Create a free project at [supabase.com](https://supabase.com)
+2. Run `supabase/schema.sql` in the SQL editor
+3. Copy `.env.example` to `.env.local` and fill in the two values
+4. Rebuild and deploy
+
+Without it the page falls back to this browser's own runs and says so. The two
+env values are public by design: the schema lets that key insert rows and call
+one aggregate function, but **not** read individual submissions.
+
+Still deferred: a "you vs the crowd" comparison view. The stats page is
+population-only by choice.
+
+## Go-to-market
+
+See [docs/GO-TO-MARKET-CONTEXT.md](docs/GO-TO-MARKET-CONTEXT.md) for product
+positioning, feature inventory, channels, and risks — including the licensing
+question that needs resolving before any public launch.

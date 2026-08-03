@@ -28,3 +28,7 @@ screenshots/
 
 # Requires the `workflow` OAuth scope to push; see docs/github-actions-deploy.yml.example
 .github/workflows/
+
+# Local secrets / backend config
+.env.local
+.env

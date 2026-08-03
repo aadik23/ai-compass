@@ -1,188 +1,223 @@
 import { useState, useEffect } from "react";
 import { fetchResponses, fetchResults, clearAll } from "../storage";
+import { fetchSharedStats, isRemoteConfigured } from "../remote";
+import { aggregateLocal, normalizeStats, percent } from "../logic/aggregate";
 import { allQuestions } from "../data/questions";
-import { typeCodeFromScores } from "../logic/scoring";
-import AxisMeter from "./AxisMeter";
+import { typeDescriptions } from "../data/typeDescriptions";
 import { AXES } from "../logic/axes";
+import AxisMeter from "./AxisMeter";
+
+const nf = new Intl.NumberFormat("en-US");
 
 export default function Dashboard() {
-  const [responses, setResponses] = useState(null);
-  const [results, setResults] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState(null);
+  const [source, setSource] = useState("loading");
 
   useEffect(() => {
-    Promise.all([fetchResponses(), fetchResults()]).then(([r, res]) => {
-      setResponses(r);
-      setResults(res);
-      setLoading(false);
-    });
+    let cancelled = false;
+
+    (async () => {
+      // Prefer the shared totals; fall back to this browser's own runs.
+      const shared = normalizeStats(await fetchSharedStats());
+      if (cancelled) return;
+
+      if (shared) {
+        setStats(shared);
+        setSource("shared");
+        return;
+      }
+
+      const [responses, results] = await Promise.all([
+        fetchResponses(),
+        fetchResults(),
+      ]);
+      if (cancelled) return;
+      setStats(aggregateLocal(results, responses));
+      setSource("local");
+    })();
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
-  function handleReset() {
-    if (!confirm("Delete all locally stored quiz data?")) return;
+  async function handleReset() {
+    if (!confirm("Delete the quiz data stored in this browser?")) return;
     clearAll();
-    setResponses([]);
-    setResults([]);
+    const [responses, results] = await Promise.all([
+      fetchResponses(),
+      fetchResults(),
+    ]);
+    setStats(aggregateLocal(results, responses));
   }
 
-  if (loading) {
+  if (source === "loading") {
     return <p className="stats-empty">Loading…</p>;
   }
 
-  if (!responses.length && !results.length) {
-    return (
-      <div>
-        <p className="stats-empty">
-          Nothing here yet. Take the quiz and your runs will show up on this page.
-        </p>
-      </div>
-    );
-  }
-
-  // --- Per-question ---
-  const questionMap = {};
-  for (const q of allQuestions) questionMap[q.id] = { ...q, scores: [] };
-  for (const r of responses) {
-    if (questionMap[r.question_id]) questionMap[r.question_id].scores.push(r.score);
-  }
-
-  // --- Overall ---
-  const humanResults = results.filter((r) => r.is_human === true);
-  const aiResults = results.filter((r) => r.is_human === false);
-
-  const typeCounts = {};
-  for (const r of results) {
-    const code = r.scores
-      ? typeCodeFromScores(r.scores).toUpperCase()
-      : r.type_code.toUpperCase();
-    typeCounts[code] = (typeCounts[code] || 0) + 1;
-  }
-  const sortedTypes = Object.entries(typeCounts).sort((a, b) => b[1] - a[1]);
-  const maxTypeCount = sortedTypes.length ? sortedTypes[0][1] : 1;
-
-  const axisAverages = {};
-  for (const ax of AXES) {
-    const vals = results.map((r) => r.scores?.[ax.key]).filter((v) => v != null);
-    axisAverages[ax.key] = vals.length
-      ? Math.round(vals.reduce((s, v) => s + v, 0) / vals.length)
-      : 50;
-  }
-
-  function distribution(scores) {
-    const buckets = { "-2": 0, "-1": 0, "0": 0, "1": 0, "2": 0 };
-    for (const s of scores) buckets[String(s)] = (buckets[String(s)] || 0) + 1;
-    return buckets;
-  }
+  const isShared = source === "shared";
+  const top = stats.types[0];
+  const topDesc = top ? typeDescriptions[top.code] : null;
 
   return (
     <div>
-      <p className="stats-note">
-        <span>Stored in this browser only.</span>
-        <button type="button" className="btn btn-quiet" onClick={handleReset}>
-          Clear data
-        </button>
-      </p>
-
-      <div className="stats-figures">
-        <div className="intro-meta-item">
-          <span className="eyebrow">Completions</span>
-          <span className="stats-figure-value">{results.length}</span>
-        </div>
-        <div className="intro-meta-item">
-          <span className="eyebrow">Human</span>
-          <span className="stats-figure-value">{humanResults.length}</span>
-        </div>
-        <div className="intro-meta-item">
-          <span className="eyebrow">AI</span>
-          <span className="stats-figure-value">{aiResults.length}</span>
-        </div>
-        <div className="intro-meta-item">
-          <span className="eyebrow">Answers</span>
-          <span className="stats-figure-value">{responses.length}</span>
-        </div>
+      <div className="result-section-head">
+        <span className="eyebrow">{isShared ? "Everyone so far" : "This browser only"}</span>
+        {!isShared && (
+          <button type="button" className="btn btn-quiet" onClick={handleReset}>
+            Clear data
+          </button>
+        )}
       </div>
 
-      {sortedTypes.length > 0 && (
-        <>
-          <div className="result-section-head">
-            <span className="eyebrow">Archetypes recorded</span>
-          </div>
-          <div>
-            {sortedTypes.map(([code, count]) => (
-              <div key={code} className="stats-bar-row">
-                <span className="stats-bar-label">{code}</span>
-                <div className="stats-bar-track">
-                  <div
-                    className="stats-bar-fill"
-                    style={{ width: `${(count / maxTypeCount) * 100}%` }}
-                  />
-                </div>
-                <span className="stats-bar-value">{count}</span>
-              </div>
-            ))}
-          </div>
-          <hr className="rule" />
-        </>
+      {!isShared && (
+        <p className="stats-banner">
+          {isRemoteConfigured
+            ? "Shared totals are unavailable right now, so these are just your own runs."
+            : "No shared backend is configured yet, so these are just your own runs on this browser. See supabase/schema.sql to turn on global totals."}
+        </p>
       )}
 
-      <div className="result-section-head">
-        <span className="eyebrow">Average position</span>
-        <span className="eyebrow">0 – 100</span>
-      </div>
-      <div className="meters">
-        {AXES.map((ax) => (
-          <AxisMeter
-            key={ax.key}
-            label={ax.label}
-            score={axisAverages[ax.key]}
-            leftLabel={ax.left}
-            rightLabel={ax.right}
-          />
-        ))}
-      </div>
-
-      <hr className="rule" />
-
-      <div className="result-section-head">
-        <span className="eyebrow">By question</span>
-      </div>
-      <div>
-        {allQuestions.map((q) => {
-          const data = questionMap[q.id];
-          if (!data.scores.length) return null;
-          const avg = (
-            data.scores.reduce((s, v) => s + v, 0) / data.scores.length
-          ).toFixed(2);
-          const dist = distribution(data.scores);
-          const maxBucket = Math.max(...Object.values(dist), 1);
-          return (
-            <div key={q.id} className="stats-q">
-              <span className="eyebrow">
-                {q.id} · {q.axis}
-              </span>
-              <p className="stats-q-text">{q.text}</p>
-              <div className="stats-q-meta">
-                <span>
-                  {data.scores.length}{" "}
-                  {data.scores.length === 1 ? "answer" : "answers"}
-                </span>
-                <span>avg {avg}</span>
-              </div>
-              <div className="stats-dist">
-                {["-2", "-1", "0", "1", "2"].map((b) => (
-                  <div key={b} className="stats-dist-col">
-                    <div
-                      className="stats-dist-bar"
-                      style={{ height: `${(dist[b] / maxBucket) * 100}%` }}
-                    />
-                    <span className="stats-dist-label">{b}</span>
-                  </div>
-                ))}
-              </div>
+      {stats.total === 0 ? (
+        <p className="stats-empty">
+          Nobody has finished the quiz yet. Take it and you'll be the first.
+        </p>
+      ) : (
+        <>
+          {/* --- Headline numbers ------------------------------------------ */}
+          <div className="stats-figures">
+            <div className="intro-meta-item">
+              <span className="eyebrow">{isShared ? "People" : "Runs"}</span>
+              <span className="stats-figure-value">{nf.format(stats.total)}</span>
             </div>
-          );
-        })}
-      </div>
+            {topDesc && (
+              <div className="intro-meta-item">
+                <span className="eyebrow">Most common</span>
+                <span className="stats-figure-value stats-figure-name">
+                  {topDesc.label}
+                </span>
+                <span className="stats-figure-sub">
+                  {percent(top.n, stats.total)}% · {nf.format(top.n)}
+                </span>
+              </div>
+            )}
+            {(stats.humans > 0 || stats.ais > 0) && (
+              <div className="intro-meta-item">
+                <span className="eyebrow">Human / AI</span>
+                <span className="stats-figure-value">
+                  {nf.format(stats.humans)} / {nf.format(stats.ais)}
+                </span>
+              </div>
+            )}
+          </div>
+
+          {/* --- Where everyone falls -------------------------------------- */}
+          <div className="result-section-head">
+            <span className="eyebrow">Where everyone falls</span>
+            <span className="eyebrow">Average, 0 – 100</span>
+          </div>
+          <div className="meters">
+            {AXES.map((axis) => (
+              <AxisMeter
+                key={axis.key}
+                label={axis.label}
+                score={stats.axes[axis.key]}
+                leftLabel={axis.left}
+                rightLabel={axis.right}
+              />
+            ))}
+          </div>
+
+          <hr className="rule" />
+
+          {/* --- Leaderboard ---------------------------------------------- */}
+          <div className="result-section-head">
+            <span className="eyebrow">Most popular archetypes</span>
+            <span className="eyebrow">Share</span>
+          </div>
+          <ol className="stats-board">
+            {stats.types.map(({ code, n }, i) => {
+              const desc = typeDescriptions[code];
+              const pct = percent(n, stats.total);
+              return (
+                <li key={code} className="stats-board-row">
+                  <span className="stats-board-rank">{i + 1}</span>
+                  <span className="stats-board-name">
+                    {desc ? desc.label : code}
+                    <span className="stats-board-code">{code}</span>
+                  </span>
+                  <span className="stats-board-track">
+                    <span
+                      className="stats-board-fill"
+                      style={{ width: `${Math.max(pct, 1)}%` }}
+                    />
+                  </span>
+                  <span className="stats-board-value">
+                    {pct}%
+                    <span className="stats-board-count">{nf.format(n)}</span>
+                  </span>
+                </li>
+              );
+            })}
+          </ol>
+
+          {stats.types.length < 16 && (
+            <p className="result-disclaimer">
+              {16 - stats.types.length} of the sixteen archetypes have not come
+              up yet.
+            </p>
+          )}
+
+          {/* --- Per question --------------------------------------------- */}
+          {stats.questions.length > 0 && (
+            <>
+              <hr className="rule" />
+              <div className="result-section-head">
+                <span className="eyebrow">Answer spread by question</span>
+              </div>
+              <div>
+                {allQuestions.map((q) => {
+                  const d = stats.questions.find((x) => x.question_id === q.id);
+                  if (!d || !d.n) return null;
+                  const buckets = [
+                    ["-2", d.m2],
+                    ["-1", d.m1],
+                    ["0", d.z],
+                    ["1", d.p1],
+                    ["2", d.p2],
+                  ];
+                  const max = Math.max(...buckets.map(([, v]) => v || 0), 1);
+                  return (
+                    <div key={q.id} className="stats-q">
+                      <span className="eyebrow">
+                        {q.id} · {q.axis}
+                      </span>
+                      <p className="stats-q-text">{q.text}</p>
+                      <div className="stats-q-meta">
+                        <span>
+                          {nf.format(d.n)} {d.n === 1 ? "answer" : "answers"}
+                        </span>
+                        <span>avg {Number(d.avg).toFixed(2)}</span>
+                      </div>
+                      <div className="stats-dist">
+                        {buckets.map(([label, v]) => (
+                          <div key={label} className="stats-dist-col">
+                            <div
+                              className="stats-dist-bar"
+                              style={{ height: `${((v || 0) / max) * 100}%` }}
+                            />
+                            <span className="stats-dist-label">{label}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </>
+          )}
+        </>
+      )}
     </div>
   );
 }

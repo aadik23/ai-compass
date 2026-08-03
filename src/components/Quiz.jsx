@@ -7,6 +7,7 @@ import {
 } from "../logic/quizState";
 import { generateTypeCode, scoresFromAxes } from "../logic/archetype";
 import { logResponse, logResult } from "../storage";
+import { submitResult, submitResponses } from "../remote";
 import Question from "./Question";
 import ProgressBar from "./ProgressBar";
 import Results from "./Results";
@@ -49,20 +50,28 @@ export default function Quiz() {
   }, []);
 
   useEffect(() => {
-    if (state.isComplete && !resultLogged.current) {
-      resultLogged.current = true;
-      const scores = scoresFromAxes(state.axes);
-      logResult(
-        generateTypeCode(state.axes),
-        {
-          timeline: Math.round(scores.timeline),
-          novelty: Math.round(scores.novelty),
-          outcome: Math.round(scores.outcome),
-          control: Math.round(scores.control),
-        },
-        isHuman
-      );
-    }
+    if (!state.isComplete || resultLogged.current) return;
+    resultLogged.current = true;
+
+    const scores = scoresFromAxes(state.axes);
+    const typeCode = generateTypeCode(state.axes);
+    const rounded = {
+      outcome: Math.round(scores.outcome),
+      novelty: Math.round(scores.novelty),
+      timeline: Math.round(scores.timeline),
+      control: Math.round(scores.control),
+    };
+
+    // Local history, for this browser's own stats.
+    logResult(typeCode, rounded, isHuman);
+
+    // And add to the shared totals. Fire-and-forget: a failure here must never
+    // affect the result the person is looking at.
+    submitResult(typeCode, rounded, isHuman);
+    submitResponses(
+      Object.values(state.axes).flatMap((a) => a.responses),
+      isHuman
+    );
   }, [state.isComplete, state.axes, isHuman]);
 
   const handleRestart = useCallback(() => {
