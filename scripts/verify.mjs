@@ -79,32 +79,40 @@ check(
 // ---------------------------------------------------------------------------
 section("Naming");
 
-check("no user-facing GUFO wordmark", !/GUFO/.test(preRevealHtml));
+// Four-letter archetype codes are product data and belong on results. What must
+// never reappear is an older product name in any rendered copy.
+const RETIRED_NAMES = [/\bAI\s*Quiz\b/i, /\bg\s*u\s*f\s*o\b(?!['"\s]*[:,])/i];
+check(
+  "no retired product name in pre-results copy",
+  !RETIRED_NAMES.some((re) => re.test(preRevealHtml))
+);
 
-const builderHtml = renderToStaticMarkup(
+const FIXTURE = "BASO";
+const fixtureDesc = typeDescriptions[FIXTURE];
+const resultHtml = renderToStaticMarkup(
   h(Results, {
-    code: "GUFO",
-    scores: { outcome: 72, novelty: 64, timeline: 58, control: 55 },
+    code: FIXTURE,
+    scores: { outcome: 32, novelty: 28, timeline: 35, control: 61 },
     onRestart() {},
   })
 );
 check(
   "the four-letter code is still shown on the result",
-  builderHtml.includes("GUFO")
+  resultHtml.includes(FIXTURE)
 );
 check(
   "archetype name is revealed on the result",
-  builderHtml.includes("The Builder")
+  resultHtml.includes(fixtureDesc.label)
 );
 
 // ---------------------------------------------------------------------------
 section("Results screen");
 
 for (const axis of AXES) {
-  check(`meter present: ${axis.label}`, builderHtml.includes(axis.label));
+  check(`meter present: ${axis.label}`, resultHtml.includes(axis.label));
 }
 
-const order = AXES.map((a) => builderHtml.indexOf(`>${a.label}<`));
+const order = AXES.map((a) => resultHtml.indexOf(`>${a.label}<`));
 check(
   "meters render in Outcome, Novelty, Timeline, Control order",
   order.every((v, i) => i === 0 || (v > order[i - 1] && v !== -1)),
@@ -113,22 +121,23 @@ check(
 
 check(
   "numeric scores are shown",
-  ["72", "64", "58", "55"].every((n) => builderHtml.includes(`>${n}<`))
+  ["32", "28", "35", "61"].every((n) => resultHtml.includes(`>${n}<`))
 );
 
 check(
   "no signature graphic / emblem markup",
-  !/<svg/i.test(builderHtml)
+  !/<svg/i.test(resultHtml)
 );
 
 // ---------------------------------------------------------------------------
 section("Share copy");
 
-const expected =
-  "I'm The Builder on AI Compass — optimistic, unprecedented, fast, and ready to steer. What do you believe about AI? → https://example.test/";
+const expected = `I'm ${fixtureDesc.label} on AI Compass — ${
+  fixtureDesc.tagline.charAt(0).toLowerCase() + fixtureDesc.tagline.slice(1)
+}. What do you believe about AI? → https://example.test/`;
 const actual = shareText(
-  "The Builder",
-  typeDescriptions.GUFO.tagline,
+  fixtureDesc.label,
+  fixtureDesc.tagline,
   "https://example.test/"
 );
 check("share text matches the doc template exactly", actual === expected, actual);
@@ -143,7 +152,7 @@ check("share text is emoji-free", !/\p{Extended_Pictographic}/u.test(actual));
 section("Gendered language");
 
 const gendered = /\b(he|him|his|she|her|hers|himself|herself)\b/i;
-const copySurfaces = { preReveal: preRevealHtml, results: builderHtml };
+const copySurfaces = { preReveal: preRevealHtml, results: resultHtml };
 for (const [name, html] of Object.entries(copySurfaces)) {
   const text = html.replace(/<[^>]+>/g, " ");
   const hit = text.match(gendered);

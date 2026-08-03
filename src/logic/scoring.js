@@ -34,9 +34,10 @@ export function generateTypeCode(axes) {
   ].join("");
 }
 
-// Reconstruct a GUFO-ordered type code from the stored scores object
-// {timeline: N, novelty: N, outcome: N, control: N}
-// This is order-independent, so it works for both old (FUGO) and new (GUFO) results.
+// Rebuild a type code from a stored scores object
+// {outcome: N, novelty: N, timeline: N, control: N}.
+// Keyed by name rather than position, so the order of the stored keys is
+// irrelevant and older records still resolve correctly.
 export function typeCodeFromScores(scores) {
   return [
     letterForScore(scores.outcome, "G", "B"),

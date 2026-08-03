@@ -32,3 +32,6 @@ screenshots/
 # Local secrets / backend config
 .env.local
 .env
+
+# Names a real person and discusses licensing exposure — keep local
+docs/GO-TO-MARKET-PLAN.md

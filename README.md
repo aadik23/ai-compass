@@ -48,9 +48,8 @@ function signatures but writes to `localStorage`, so this runs with no keys, no
 network calls, and no writes into someone else's database. Stats live at
 `#/stats` with a "Clear data" button.
 
-**Name and identity.** "GUFO" is retired from all user-facing copy. The
-four-letter code survives as the per-result token — and for The Builder that
-code still happens to be G-U-F-O.
+**Name and identity.** Branded as AI Compass throughout. Each result still
+carries its four-letter code as a collectible token.
 
 **Look.** Rebuilt as clean editorial: Source Serif 4 for display, Inter for UI
 and data, near-monochrome on `#FBFAF8`, Wordle green and yellow as the only

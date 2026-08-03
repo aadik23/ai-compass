@@ -322,7 +322,7 @@ export const controlQuestions = [
     weight: 1,
     text: "When you think about where AI is heading, it feels more like:",
     optionA: "An open field—many possible futures, and we're choosing between them",
-    optionLeanA: "Constrained but with real forks in the road that matter",
+    optionLeanA: "Constrained, but with real turning points that matter",
     optionNeutral: "Some things feel determined, others feel genuinely up for grabs",
     optionLeanB: "A narrowing path—fewer real options than it seems",
     optionB: "A trajectory already set—we're passengers, not drivers",

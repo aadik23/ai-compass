@@ -67,7 +67,7 @@ export function readRoute() {
   if (typeof window === "undefined") return { view: "quiz" };
   const { pathname, search, hash } = window.location;
 
-  // Hash route: #/r/GUFO/72-64-55-48  (also tolerates #/r/72-64-55-48)
+  // Hash route: #/r/BASO/32-28-35-61  (also tolerates #/r/32-28-35-61)
   const hashPath = hash.replace(/^#\/?/, "");
   if (hashPath === "stats") return { view: "stats" };
 
@@ -83,7 +83,7 @@ export function readRoute() {
     }
   }
 
-  // Static archetype page: /a/GUFO/?s=72-64-55-48
+  // Static archetype page: /a/BASO/?s=32-28-35-61
   const pathMatch = pathname.match(/\/a\/([A-Za-z]{4})\/?$/);
   if (pathMatch) {
     const scores = decodeScores(new URLSearchParams(search).get("s"));

@@ -1,8 +1,32 @@
-// Local stand-in for the hosted Supabase backend.
-// Everything is kept in localStorage so the app runs with no keys and no network.
+// This browser's own quiz history, used by the stats page when no shared
+// backend is configured. Nothing leaves the device.
 
-const RESPONSES_KEY = "gufo.responses";
-const RESULTS_KEY = "gufo.results";
+const RESPONSES_KEY = "aicompass.responses";
+const RESULTS_KEY = "aicompass.results";
+
+// Earlier builds used different key names. Move anything found under them once,
+// so returning visitors keep their history instead of silently losing it.
+const LEGACY_KEYS = {
+  [RESPONSES_KEY]: "gufo.responses",
+  [RESULTS_KEY]: "gufo.results",
+};
+
+function migrateLegacyKeys() {
+  try {
+    for (const [current, legacy] of Object.entries(LEGACY_KEYS)) {
+      const old = localStorage.getItem(legacy);
+      if (old === null) continue;
+      if (localStorage.getItem(current) === null) {
+        localStorage.setItem(current, old);
+      }
+      localStorage.removeItem(legacy);
+    }
+  } catch {
+    // Storage unavailable (private mode, quota). Nothing to recover.
+  }
+}
+
+migrateLegacyKeys();
 
 function read(key) {
   try {

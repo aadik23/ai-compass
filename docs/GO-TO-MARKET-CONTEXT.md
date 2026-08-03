@@ -8,44 +8,6 @@ what's actually built, how growth is meant to work, and what's unresolved.
 
 ---
 
-## 0. Read this first: the blocker
-
-**The quiz content is not yours, and it has no license.**
-
-This project is a fork of [justincurl/ai-quiz](https://github.com/justincurl/ai-quiz).
-Inherited essentially unchanged: all 40+ questions and answer options, the four
-axes and their definitions, the scoring model, the adaptive question selection,
-and all sixteen archetypes with their names, taglines, descriptions, thinker
-lists, and community lists. That is the entire substance of the product.
-
-What this fork added: the name, the visual identity, the reveal timing, the
-sharing system, and the stats backend.
-
-The upstream repo has **no LICENSE file**. Under default copyright that means
-all rights reserved — GitHub's terms let you view and fork within GitHub, but
-they do not grant redistribution, modification-and-republication, or commercial
-use. Publishing this under a new brand and actively driving traffic to it is
-exactly what that doesn't cover.
-
-**Resolve before any launch push.** Options, roughly in order of preference:
-
-1. **Ask Justin Curl to collaborate or co-launch.** Cheapest and best outcome —
-   you bring design, distribution, and infrastructure to work he's already done.
-   The repo is 0 stars and was created 2026-01-30, so it's unlaunched; a joint
-   launch is plausibly attractive to him.
-2. **Get explicit written permission** plus an agreed license (MIT/CC-BY) and
-   visible attribution.
-3. **Replace the content.** Write your own questions and archetypes against the
-   same four-axis idea. Axis *concepts* are far harder to protect than the
-   specific text. This is real work — call it a week — but it makes the product
-   unambiguously yours.
-4. **Keep it unlisted.** Personal/portfolio use, no promotion. No GTM needed.
-
-Everything below assumes one of 1–3 is settled. Distributing at scale without
-that is the main risk to the whole plan, and it gets worse the more successful
-the launch is.
-
----
 
 ## 1. What it is
 
@@ -135,7 +97,7 @@ to being more than a BuzzFeed quiz, and it should lead the pitch.
 - **Share card** — 1200×630 PNG generated in-browser with your actual scores;
   download or native share sheet
 - **One-tap posting** — X, LinkedIn, Bluesky, pre-filled
-- **Result-encoded URLs** — `/a/GUFO/?s=72-64-55-48` reopens an exact result
+- **Result-encoded URLs** — `/a/BASO/?s=32-28-35-61` reopens an exact result
 - **Correct link previews** — 16 pre-generated static pages, each with its own
   OG image, so a shared link unfurls as that archetype rather than a generic card
 - **Shared stats page** — total takers, most common archetype, full leaderboard
